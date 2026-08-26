@@ -1,0 +1,12 @@
+import { pool } from '../config/database.js'
+
+const productFields = `p.id, p.code, p.name, p.description, p.brand, p.size, p.unit, p.quantity,
+  p.stock, p.price, p.estado, p.expiration_date, p.created_at AS createdAt,
+  p.price_purchase, p.price_wholesale, p.price_retail, p.margin_wholesale, p.margin_retail,
+  p.category_id AS category, c.id AS categoryId, c.name AS categoryName`
+
+export async function findAll() { const [rows] = await pool.execute(`SELECT ${productFields} FROM products p INNER JOIN categories c ON c.id = p.category_id ORDER BY p.name`); return rows }
+export async function findById(id) { const [rows] = await pool.execute(`SELECT ${productFields} FROM products p INNER JOIN categories c ON c.id = p.category_id WHERE p.id = ?`, [id]); return rows[0] || null }
+export async function create(data) { const [result] = await pool.execute(`INSERT INTO products (code, name, description, category_id, brand, size, unit, quantity, stock, price, estado, expiration_date, price_purchase, price_wholesale, price_retail, margin_wholesale, margin_retail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [data.code, data.name, data.description || null, data.category, data.brand, data.size || null, data.unit || 'unidad', data.quantity || 1, data.stock || 0, data.price, data.estado || 'ACTIVO', data.expiration_date || null, data.price_purchase || 0, data.price_wholesale || 0, data.price_retail || data.price || 0, data.margin_wholesale ?? 20, data.margin_retail ?? 25]); return findById(result.insertId) }
+export async function update(id, data) { const [result] = await pool.execute(`UPDATE products SET code = ?, name = ?, description = ?, category_id = ?, brand = ?, size = ?, unit = ?, quantity = ?, stock = ?, price = ?, estado = ?, expiration_date = ?, price_purchase = ?, price_wholesale = ?, price_retail = ?, margin_wholesale = ?, margin_retail = ? WHERE id = ?`, [data.code, data.name, data.description || null, data.category, data.brand, data.size || null, data.unit || 'unidad', data.quantity || 1, data.stock || 0, data.price, data.estado || 'ACTIVO', data.expiration_date || null, data.price_purchase || 0, data.price_wholesale || 0, data.price_retail || data.price || 0, data.margin_wholesale ?? 20, data.margin_retail ?? 25, id]); return result.affectedRows ? findById(id) : null }
+export async function remove(id) { const [result] = await pool.execute('DELETE FROM products WHERE id = ?', [id]); return result.affectedRows > 0 }

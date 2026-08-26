@@ -1,0 +1,4 @@
+import { pool } from '../config/database.js'
+export async function findAll() { const [rows] = await pool.execute("SELECT id, type_document, document, full_name, phone, email, address, city, cupo, status, client_type FROM clients WHERE status = 'ACTIVO' ORDER BY full_name"); return rows }
+export async function findById(id) { const [rows] = await pool.execute('SELECT * FROM clients WHERE id = ?', [id]); return rows[0] || null }
+export async function create(data) { const [result] = await pool.execute('INSERT INTO clients (type_document, document, full_name, phone, email, address, city, cupo, client_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [data.type_document, data.document, data.full_name, data.phone, data.email, data.address, data.city, data.cupo || 0, data.client_type || 'detal']); return findById(result.insertId) }

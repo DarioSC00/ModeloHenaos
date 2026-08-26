@@ -1,0 +1,6 @@
+import { pool } from '../config/database.js'
+export async function findAll() { const [rows] = await pool.execute('SELECT d.*, s.code AS sale_code FROM devolutions d INNER JOIN sales s ON s.id = d.sale_id ORDER BY d.created_at DESC'); return rows }
+export async function findById(id) { const [rows] = await pool.execute('SELECT * FROM devolutions WHERE id = ?', [id]); return rows[0] || null }
+export async function create(data) { const [result] = await pool.execute('INSERT INTO devolutions (code, sale_id, motivo, total_devolucion, user_id) VALUES (?, ?, ?, ?, ?)', [data.code, data.sale_id, data.motivo, data.total_devolucion, data.user_id]); return findById(result.insertId) }
+export async function addDetail(devolutionId, data) { const [result] = await pool.execute('INSERT INTO devolution_details (devolution_id, product_id, cantidad_devuelta, precio_unitario, subtotal, producto_reemplazo_id) VALUES (?, ?, ?, ?, ?, ?)', [devolutionId, data.product_id, data.cantidad_devuelta, data.precio_unitario, data.subtotal, data.producto_reemplazo_id || null]); return result.insertId }
+export async function findDetails(id) { const [rows] = await pool.execute('SELECT dd.*, p.name AS product_name FROM devolution_details dd INNER JOIN products p ON p.id = dd.product_id WHERE dd.devolution_id = ?', [id]); return rows }
